@@ -39,7 +39,7 @@ public class Sudoku {
 	// Provided hard 3 7 grid
 	// 1 solution this way, 6 solutions if the 7 is changed to 0
 	public static final int[][] hardGrid = Sudoku.stringsToGrid(
-	"3 7 0 0 0 0 0 8 0",
+	"3 0 0 0 0 0 0 8 0",
 	"0 0 1 0 9 3 0 0 0",
 	"0 4 0 7 8 0 0 0 3",
 	"0 9 3 8 0 0 0 1 2",
