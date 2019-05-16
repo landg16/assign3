@@ -18,7 +18,7 @@ public class SQLBackend extends AbstractTableModel {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             Connection connection = DriverManager.getConnection("jdbc:mysql://" + sql_server, sql_user, sql_password);
-            st = connection.createStatement();
+            st = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             st.executeQuery("use "+sql_db);
             rs = getTable();
             fireTableDataChanged();
@@ -49,20 +49,60 @@ public class SQLBackend extends AbstractTableModel {
         }
     }
 
-    public void search(String metropolis, String continent, long population, )
+    public void search(String metropolis, String continent, long population, String population_filter, String else_filter){
+        String sql = "SELECT * FROM " + sql_table +_" WHERE ";
+        String equalitySymbol = "=";
+        if(else_filter != "Exact Match") {
+            equalitySymbol = "like";
+        }
+        if(metropolis != ""){
+            sql += "metropolis = " + metropolis;
+        }
+        if(continent != ""){
+            sql += "continent = " + continent;
+        }
+        if(metropolis != ""){
+            sql += "metropolis = " + metropolis;
+        }
+    }
 
     @Override
     public int getRowCount() {
-        return 0;
+        int rowCount = 0;
+        try {
+            rs.last();
+            rowCount = rs.getRow();
+            rs.beforeFirst();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return rowCount;
     }
 
     @Override
     public int getColumnCount() {
-        return 0;
+        try {
+            ResultSetMetaData rsmd = rs.getMetaData();
+            return rsmd.getColumnCount();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 3;
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
+        try {
+            int k = 0;
+            while(rs.next()) {
+                k++;
+                if(k == rowIndex+1) {
+                    return rs.getObject(columnIndex+1);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 }
