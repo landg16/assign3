@@ -12,13 +12,15 @@ public class SQLBackend extends AbstractTableModel {
     private String sql_table = "metropolises";
 
     private Statement st;
+    private Statement st1;
     private ResultSet rs;
 
     public SQLBackend () {
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            Connection connection = DriverManager.getConnection("jdbc:mysql://" + sql_server, sql_user, sql_password);
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection = DriverManager.getConnection("jdbc:mysql://" + sql_server+"?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC", sql_user, sql_password);
             st = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            st1 = connection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             st.executeQuery("use "+sql_db);
             rs = getTable();
             fireTableDataChanged();
@@ -40,7 +42,48 @@ public class SQLBackend extends AbstractTableModel {
     }
 
     public void insert(String metropolis, String continent, long population) {
-        String sql = "INSERT INTO " + sql_table + " VALUES(" + metropolis +","+ continent +","+population+")";
+        String sql = "INSERT INTO " + sql_table + " VALUES('" + metropolis +"','"+ continent +"','"+population+"')";
+        try {
+            st.executeUpdate(sql);
+            rs = getTable();
+            fireTableDataChanged();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void search(String metropolis, String continent, long population, String population_filter, String else_filter){
+        String sql = "SELECT * FROM " + sql_table;
+        String equalitySymbol = "=";
+        String likeSymbol = "";
+        String compareSign = ">";
+        boolean isAnother = false;
+
+        if(else_filter != "Exact Match") {
+            equalitySymbol = "like";
+            likeSymbol = "%";
+        }
+
+        if(population_filter != "Population Larger Than") {
+            compareSign = "<=";
+        }
+
+        if(metropolis != ""||continent != ""||population >= 0) sql += " WHERE ";
+        if(metropolis != ""){
+            isAnother = true;
+            sql += " metropolis " + equalitySymbol + " '" + likeSymbol + metropolis + likeSymbol+"' ";
+        }
+        if(continent != ""){
+            if(isAnother) sql += " AND ";
+            isAnother = true;
+            sql += " continent " + equalitySymbol + " '" + likeSymbol + continent + likeSymbol+"' ";
+        }
+        if(population >= 0){
+            if(isAnother) sql += " AND ";
+            isAnother = true;
+            sql += " population " + compareSign + " " + population;
+        }
+
         try {
             rs = st.executeQuery(sql);
             fireTableDataChanged();
@@ -49,21 +92,22 @@ public class SQLBackend extends AbstractTableModel {
         }
     }
 
-    public void search(String metropolis, String continent, long population, String population_filter, String else_filter){
-        String sql = "SELECT * FROM " + sql_table +_" WHERE ";
-        String equalitySymbol = "=";
-        if(else_filter != "Exact Match") {
-            equalitySymbol = "like";
+    public String getHeaderNameAt(int columnIndex) {
+        String sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '"+ sql_table +"'";
+        try {
+            ResultSet headerSet = st1.executeQuery(sql);
+            int i = 0;
+            while(headerSet.next()){
+                if(i == columnIndex) {
+                    return headerSet.getString(1);
+                }
+                i++;
+            }
+            headerSet.beforeFirst();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        if(metropolis != ""){
-            sql += "metropolis = " + metropolis;
-        }
-        if(continent != ""){
-            sql += "continent = " + continent;
-        }
-        if(metropolis != ""){
-            sql += "metropolis = " + metropolis;
-        }
+        return null;
     }
 
     @Override
@@ -92,17 +136,19 @@ public class SQLBackend extends AbstractTableModel {
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
+        Object result = null;
         try {
             int k = 0;
             while(rs.next()) {
                 k++;
                 if(k == rowIndex+1) {
-                    return rs.getObject(columnIndex+1);
+                    result = rs.getObject(columnIndex+1);
                 }
             }
+            rs.beforeFirst();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return result;
     }
 }
