@@ -15,6 +15,9 @@ public class SQLBackend extends AbstractTableModel {
     private Statement st1;
     private ResultSet rs;
 
+    /**
+     * Initialize SQLBackend Class which connects to DataBase and extends AbstractTableModel
+     */
     public SQLBackend () {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -31,6 +34,10 @@ public class SQLBackend extends AbstractTableModel {
         }
     }
 
+    /**
+     * Returns whole table from SQL as ResultSet
+     * @return ResultSet
+     */
     public ResultSet getTable(){
         String sql = "SELECT * FROM "+ sql_table;
         try {
@@ -41,6 +48,12 @@ public class SQLBackend extends AbstractTableModel {
         return null;
     }
 
+    /**
+     * Following method inserts metropolis information and updates table on frame.
+     * @param metropolis Name of Metropolis
+     * @param continent Name of Continent
+     * @param population Number of Population
+     */
     public void insert(String metropolis, String continent, long population) {
         String sql = "INSERT INTO " + sql_table + " VALUES('" + metropolis +"','"+ continent +"','"+population+"')";
         try {
@@ -52,6 +65,14 @@ public class SQLBackend extends AbstractTableModel {
         }
     }
 
+    /**
+     * Search inside SQL Table using given filters.
+     * @param metropolis Name of Metropolis
+     * @param continent Name of Continent
+     * @param population Number of Population
+     * @param population_filter if searched population is less or great than given
+     * @param else_filter if metropolis or continent is in exact match or partial.
+     */
     public void search(String metropolis, String continent, long population, String population_filter, String else_filter){
         String sql = "SELECT * FROM " + sql_table;
         String equalitySymbol = "=";
@@ -92,6 +113,11 @@ public class SQLBackend extends AbstractTableModel {
         }
     }
 
+    /**
+     * Search inside SQL Table using given filters.
+     * @param columnIndex Number of index to return header name
+     * @return String at column index returns name.
+     */
     public String getHeaderNameAt(int columnIndex) {
         String sql = "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '"+ sql_table +"'";
         try {

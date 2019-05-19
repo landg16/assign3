@@ -158,7 +158,6 @@ public class Sudoku {
 		elapsedTime =  System.currentTimeMillis() - startTime;
 		return solveNum;
 	}
-	
 
 	private void solveRec(int[][] tempResult) {
 		if(solveNum == MAX_SOLUTIONS) return;
@@ -267,5 +266,17 @@ public class Sudoku {
 		public int compareTo(Object arg0) {
 			return possibilities.size()-((Spot)arg0).possibleArr().size();
 		}
+	}
+
+	@Override
+	public String toString(){
+		String res = "";
+		for(int i = 0; i<result.length; i++){
+			for(int j = 0; j<result.length; j++){
+				res += result[i][j] + " ";
+			}
+			res += "\n";
+		}
+		return res;
 	}
 }
